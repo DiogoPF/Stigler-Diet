@@ -1,6 +1,8 @@
 from operator import attrgetter
 from random import shuffle, choice, sample, random
 from copy import copy
+from data.data_prep import commodities, nutrients, target_nutrients
+import numpy as np
 
 
 class Individual:
@@ -43,6 +45,20 @@ class Individual:
     def __repr__(self):
         return f" Fitness: {self.fitness}"
 
+    def get_food_list(self):
+        food_dict = {
+            commodities[i]: self.representation[i]
+            for i in range(len(self.representation))
+            if self.representation[i] > 0.0
+        }
+        return food_dict
+
+    def get_total_nutrients(self):
+        current_nutrients = np.dot(self.representation, nutrients)
+        target_nutrients_array = np.array(target_nutrients)
+        diff = current_nutrients - target_nutrients_array
+        return diff
+
 
 class Population:
     def __init__(self, size, optim, **kwargs):
@@ -61,21 +77,23 @@ class Population:
                 Individual(
                     size=kwargs["sol_size"],
                     valid_set=kwargs["valid_set"],
-                    repetition=kwargs["repetition"]
+                    repetition=kwargs["repetition"],
                 )
             )
+
     def evolve(self, gens, xo_prob, mut_prob, select, xo, mutate, elitism):
+        fitness_gen = []
         # gens = 100
         for i in range(gens):
             new_pop = []
 
             if elitism:
                 if self.optim == "max":
-                    elite = copy(max(self.individuals, key=attrgetter('fitness')))
+                    elite = copy(max(self.individuals, key=attrgetter("fitness")))
                 elif self.optim == "min":
-                    elite = copy(min(self.individuals, key=attrgetter('fitness')))
+                    elite = copy(min(self.individuals, key=attrgetter("fitness")))
 
-                #new_pop.append(elite)
+                # new_pop.append(elite)
 
             while len(new_pop) < self.size:
                 # selection
@@ -98,24 +116,30 @@ class Population:
 
             if elitism:
                 if self.optim == "max":
-                    worst = min(new_pop, key=attrgetter('fitness'))
+                    worst = min(new_pop, key=attrgetter("fitness"))
                     if elite.fitness > worst.fitness:
                         new_pop.pop(new_pop.index(worst))
                         new_pop.append(elite)
                 if self.optim == "min":
-                    worst = max(new_pop, key=attrgetter('fitness'))
+                    worst = max(new_pop, key=attrgetter("fitness"))
                     if elite.fitness < worst.fitness:
                         new_pop.pop(new_pop.index(worst))
                         new_pop.append(elite)
 
-
             self.individuals = new_pop
 
             if self.optim == "max":
-                print(f"Best individual of gen #{i + 1}: {max(self, key=attrgetter('fitness'))}")
+                best_individual = max(self, key=attrgetter("fitness"))
+                print(f"Best individual of gen #{i + 1}: {best_individual}")
             elif self.optim == "min":
-                print(f"Best individual of gen #{i + 1}: {min(self, key=attrgetter('fitness'))}")
-
+                gen = i + 1
+                best_fitness = min(self, key=attrgetter("fitness"))
+                fitness_gen.append([gen, best_fitness.fitness])
+                best_individual = min(self, key=attrgetter("fitness"))
+                print(f"Best individual of gen #{i + 1}: {best_individual}")
+        print(best_individual.get_food_list())
+        print(best_individual.get_total_nutrients().tolist())
+        return fitness_gen
 
     def __len__(self):
         return len(self.individuals)

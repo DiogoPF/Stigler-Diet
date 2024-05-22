@@ -4,7 +4,9 @@ from class_code.mutation import *
 from class_code.selection import *
 from class_code.xo import *
 import numpy as np
-import numpy as np
+import pandas as pd
+import itertools
+from tqdm import tqdm
 
 
 def get_fitness(self):
@@ -12,42 +14,87 @@ def get_fitness(self):
     self.total_nutrients = np.dot(self.representation, nutrients)
     fitness = total_cost
 
+    # if np.sum(self.representation) == 1:
+    #     fitness += 1000
+
     nutrient_shortfall = np.maximum(target_nutrients - self.total_nutrients, 0)
-    fitness += np.sum(nutrient_shortfall)
+    fitness += (
+        np.sum(nutrient_shortfall) * 100
+    )  # multiply to ensure that sol doesn't contain nutrient deficits
+
+    # nutrient_shortfall = np.sum(np.abs(target_nutrients - self.total_nutrients))
+    # fitness += nutrient_shortfall * 100
 
     return fitness
 
 
-# def get_fitness(self):
-#     total_cost = np.dot(self.representation, prices)
-#     total_nutrients = np.dot(self.representation, nutrients)
-#     fitness = total_cost
-
-#     for nutrient in target_nutrients:
-#         for i in total_nutrients:
-#             if i < nutrient:
-#                 fitness += abs(nutrient - i)
-
-#     return fitness
-
-
 Individual.get_fitness = get_fitness
+
 
 pop = Population(
     size=100,
     optim="min",
     sol_size=len(nutrients),
-    valid_set=[0, 1],
+    valid_set=range(0, 101),
     repetition=True,
 )
 
 
 pop.evolve(
-    gens=100,
+    gens=1000,
     xo_prob=0.85,
     mut_prob=0.15,
     select=fps,
     xo=single_point_xo,
-    mutate=binary_mutation,
+    mutate=swap_mutation,
     elitism=True,
 )
+
+
+#####   Results Comparison    #####
+# select_list = ["fps", "tournament_sel"]
+# xo_list = ["single_point_xo"]
+# mutate_list = ["swap_mutation"]
+
+
+# def get_results(pop, gens, xo_prob, mut_prob, select_list, xo_list, mutate_list):
+#     results = pd.DataFrame(
+#         columns=["selection", "xo", "mutation", "run", "generation", "fitness"]
+#     )
+#     results_list = []
+
+#     all_combinations = list(itertools.product(select_list, xo_list, mutate_list))
+#     total_iterations = len(all_combinations) * 30
+#     with tqdm(total=total_iterations, desc="Progress") as pbar:
+#         for run in range(1, 31):
+#             for combination in all_combinations:
+#                 select_func = globals()[combination[0]]
+#                 xo_func = globals()[combination[1]]
+#                 mutate_func = globals()[combination[2]]
+
+#                 evolve = pop.evolve(
+#                     gens=gens,
+#                     xo_prob=xo_prob,
+#                     mut_prob=mut_prob,
+#                     select=select_func,
+#                     xo=xo_func,
+#                     mutate=mutate_func,
+#                     elitism=True,
+#                 )
+
+#                 for result in evolve:
+#                     results_list.append(
+#                         {
+#                             "parameters": combination,
+#                             "run": run,
+#                             "generation": result[0],
+#                             "fitness": result[1],
+#                         }
+#                     )
+#                 pbar.update(1)
+
+#         results = pd.DataFrame(results_list)
+#         results.to_csv("./data/results.csv", index=False)
+
+
+# get_results(pop, 500, 0.85, 0.15, select_list, xo_list, mutate_list)

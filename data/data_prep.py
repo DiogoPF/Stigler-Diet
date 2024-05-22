@@ -2,7 +2,6 @@ import pandas as pd
 
 df = pd.read_csv("./data/raw data.csv")
 
-
 commodities = [
     comodity + "-" + unit
     for comodity, unit in zip(df.commodity.to_list(), df.unit.to_list())
@@ -27,4 +26,4 @@ target_nutrients = [
     ["Niacin (mg)", 18],
     ["Vitamin C (mg)", 75],
 ]
-target_nutrients = [nutrient[1] for nutrient in target_nutrients]
+target_nutrients = [nutrient[1] * 365 for nutrient in target_nutrients]
