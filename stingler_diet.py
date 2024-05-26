@@ -48,7 +48,7 @@ pop.evolve(
     xo_prob=0.85,
     mut_prob=0.15,
     select=fps,
-    xo=ordered_xo,
+    xo=cycle_xo,
     mutate=shuffle_mutation,
     elitism=True,
     tour_size=3,

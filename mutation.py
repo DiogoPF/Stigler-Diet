@@ -152,4 +152,4 @@ def fitness_dependent_swap(individual, max_tries=5):
 
 if __name__ == "__main__":
     test = [0 for i in range(0, 76)] + [1]
-    print(gaussian_mutation(test))
+    print(fitness_dependent_swap(test))

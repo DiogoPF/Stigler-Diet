@@ -1,4 +1,4 @@
-from random import randint, sample, uniform, random, randrange
+from random import randint, sample, uniform, random, randrange, shuffle
 import copy
 
 
@@ -126,40 +126,33 @@ def average_xo(parent1, parent2):
 
 
 def cycle_xo(p1, p2):
-    """Implementation of cycle crossover for lists of integers with non-unique values.
+    p1_indexes = list(range(len(p1)))
+    p2_indexes = list(range(len(p1)))
+    shuffle(p1_indexes)
+    shuffle(p2_indexes)
 
-    Args:
-        p1 (list): First parent for crossover (list of integers).
-        p2 (list): Second parent for crossover (list of integers).
-
-    Returns:
-        list: Two offspring, resulting from the crossover.
-    """
-    # Offspring placeholders
     offspring1 = [None] * len(p1)
     offspring2 = [None] * len(p1)
 
-    # Convert parents to dictionaries of index:value
-    p1_dict = {i: p1[i] for i in range(len(p1))}
-    p2_dict = {i: p2[i] for i in range(len(p2))}
-
     while None in offspring1:
         index = offspring1.index(None)
-        val1 = p1_dict[index]
-        val2 = p2_dict[index]
+        val1 = p1_indexes[index]
+        val2 = p2_indexes[index]
 
-        # Copy the cycle elements
+        # copy the cycle elements
         while val1 != val2:
-            offspring1[index] = p1_dict[index]
-            offspring2[index] = p2_dict[index]
-            val2 = p2_dict[index]
-            index = list(p1_dict.keys()).index(val2)
+            offspring1[index] = p1[index]
+            offspring2[index] = p2[index]
+            val2 = p2_indexes[index]
+            index = p1_indexes.index(val2)
 
-        # Copy the rest
-        for i in range(len(offspring1)):
-            if offspring1[i] is None:
-                offspring1[i] = p2_dict[i]
-                offspring2[i] = p1_dict[i]
+        # copy the rest
+        for element in offspring1:
+            if element is None:
+                index = offspring1.index(None)
+                if offspring1[index] is None:
+                    offspring1[index] = p2[index]
+                    offspring2[index] = p1[index]
 
     return offspring1, offspring2
 
