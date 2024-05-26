@@ -1,8 +1,8 @@
 from data.data_prep import nutrients, prices, target_nutrients
-from class_code.charles import *
-from class_code.mutation import *
-from class_code.selection import *
-from class_code.xo import *
+from charles import *
+from mutation import *
+from selection import *
+from xo import *
 import numpy as np
 import pandas as pd
 import itertools
@@ -17,13 +17,16 @@ def get_fitness(self):
     # if np.sum(self.representation) == 1:
     #     fitness += 1000
 
+    # count_greater_than_one = np.sum(np.array(self.representation) > 0)
+    # print(count_greater_than_one)
+
     nutrient_shortfall = np.maximum(target_nutrients - self.total_nutrients, 0)
     fitness += (
-        np.sum(nutrient_shortfall) * 100
+        np.sum(nutrient_shortfall) * 1000
     )  # multiply to ensure that sol doesn't contain nutrient deficits
 
     # nutrient_shortfall = np.sum(np.abs(target_nutrients - self.total_nutrients))
-    # fitness += nutrient_shortfall * 100
+    # fitness += nutrient_shortfall * 1000
 
     return fitness
 
@@ -45,14 +48,18 @@ pop.evolve(
     xo_prob=0.85,
     mut_prob=0.15,
     select=fps,
-    xo=single_point_xo,
-    mutate=swap_mutation,
+    xo=ordered_xo,
+    mutate=shuffle_mutation,
     elitism=True,
+    tour_size=3,
+    max_tries=10,
+    k_point=10,
+    uniform_prob=0.5,
 )
 
 
 #####   Results Comparison    #####
-# select_list = ["fps", "tournament_sel"]
+# select_list = ["fps", "tournament_sel", "rank_sel"]
 # xo_list = ["single_point_xo"]
 # mutate_list = ["swap_mutation"]
 

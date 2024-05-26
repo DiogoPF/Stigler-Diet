@@ -1,5 +1,5 @@
 from operator import attrgetter
-from random import uniform, choice
+from random import uniform, choice, choices
 
 
 def fps(population):
@@ -39,3 +39,17 @@ def tournament_sel(population, tour_size=3):
         return max(tournament, key=attrgetter("fitness"))
     elif population.optim == "min":
         return min(tournament, key=attrgetter("fitness"))
+
+
+def rank_sel(population):
+    if population.optim == "min":
+        sorted_pop = sorted(population, key=attrgetter("fitness"), reverse=True)
+        sel_probs = [
+            rank / sum(range(len(sorted_pop)))
+            for rank, fitness in enumerate(sorted_pop, start=1)
+        ]
+        return choices(sorted_pop, sel_probs)[0]
+    if population.optim == "max":
+        raise Exception(f"Optimization not specified for Maximization")
+    else:
+        raise Exception(f"Optimization not specified (max/min)")

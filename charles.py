@@ -3,6 +3,7 @@ from random import shuffle, choice, sample, random
 from copy import copy
 from data.data_prep import commodities, nutrients, target_nutrients
 import numpy as np
+from functools import partial
 
 
 class Individual:
@@ -49,14 +50,13 @@ class Individual:
         food_dict = {
             commodities[i]: self.representation[i]
             for i in range(len(self.representation))
-            if self.representation[i] > 0.0
+            if self.representation[i] > 0
         }
         return food_dict
 
-    def get_total_nutrients(self):
+    def get_nutrients_diff(self):
         current_nutrients = np.dot(self.representation, nutrients)
-        target_nutrients_array = np.array(target_nutrients)
-        diff = current_nutrients - target_nutrients_array
+        diff = current_nutrients - np.array(target_nutrients)
         return diff
 
 
@@ -81,7 +81,34 @@ class Population:
                 )
             )
 
-    def evolve(self, gens, xo_prob, mut_prob, select, xo, mutate, elitism):
+    def evolve(
+        self,
+        gens,
+        xo_prob,
+        mut_prob,
+        select,
+        xo,
+        mutate,
+        elitism,
+        **kwargs,
+    ):
+        tour_size = kwargs.get("tour_size", False)
+        max_tries = kwargs.get("max_tries", False)
+        k_point = kwargs.get("k_point", False)
+        uniform_prob = kwargs.get("uniform_prob", False)
+
+        if tour_size and select.__name__ == "tournament_sel":
+            select = partial(select, tour_size=tour_size)
+
+        if max_tries and mutate.__name__ == "fitness_dependent_swap":
+            mutate = partial(mutate, max_tries=max_tries)
+
+        if k_point and xo.__name__ == "k_point_xo":
+            xo = partial(xo, k=k_point)
+
+        if uniform_prob and xo.__name__ == "uniform_xo":
+            xo = partial(xo, prob=uniform_prob)
+
         fitness_gen = []
         # gens = 100
         for i in range(gens):
@@ -96,14 +123,28 @@ class Population:
                 # new_pop.append(elite)
 
             while len(new_pop) < self.size:
-                # selection
-                parent1, parent2 = select(self), select(self)
-                # xo with prob
-                if random() < xo_prob:
-                    offspring1, offspring2 = xo(parent1, parent2)
-                # replication
-                else:
-                    offspring1, offspring2 = parent1, parent2
+                try:
+                    # selection
+                    parent1, parent2 = select(self), select(self)
+                    # xo with prob
+                    if random() < xo_prob:
+                        offspring1, offspring2 = xo(parent1, parent2)
+                    # replication
+                    else:
+                        offspring1, offspring2 = parent1, parent2
+                except ValueError:
+                    parent1, parent2, parent3, parent4 = (
+                        select(self),
+                        select(self),
+                        select(self),
+                        select(self),
+                    )
+                    if random() < xo_prob:
+                        offspring1 = xo(parent1, parent2)
+                        offspring2 = xo(parent3, parent4)
+                    else:
+                        offspring1, offspring2 = parent1, parent2
+
                 # mutation with prob
                 if random() < mut_prob:
                     offspring1 = mutate(offspring1)
@@ -138,7 +179,7 @@ class Population:
                 best_individual = min(self, key=attrgetter("fitness"))
                 print(f"Best individual of gen #{i + 1}: {best_individual}")
         print(best_individual.get_food_list())
-        print(best_individual.get_total_nutrients().tolist())
+        print(best_individual.get_nutrients_diff().tolist())
         return fitness_gen
 
     def __len__(self):
