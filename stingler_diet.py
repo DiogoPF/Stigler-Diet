@@ -26,57 +26,47 @@ import numpy as np
 #     mutate=swap_mutation,
 #     elitism=True,
 # )
-fitness_options = [
-    "fitness_sum_excess_shortfall",
-    "fitness_sum_shortfall",
-    "fitness_each_shortfall",
-    "fitness_each_excess_shortfall",
-    "fitness_each_excess_shortfall_weighted",
-]
-selection_options = ["fps", "rank_sel", "tournament_sel"]
+# fitness_options = [
+#     "fitness_sum_excess_shortfall",
+#     "fitness_sum_shortfall",
+#     "fitness_each_shortfall",
+#     "fitness_each_excess_shortfall",
+#     "fitness_each_excess_shortfall_weighted",
+# ]
+# selection_options = ["fps", "rank_sel", "tournament_sel"]
 
-xo_options = [
-    "single_point_xo",
-    "k_point_xo",
-    "uniform_xo",
-    "adapted_pmx",
-    "ordered_xo",
-    "average_xo",
-    "cycle_xo",
-    "int_arithmetic_crossover",
-    "fitness_dependent_xo",
-]
+# xo_options = [
+#     "single_point_xo",
+#     "k_point_xo",
+#     "uniform_xo",
+#     "adapted_pmx",
+#     "ordered_xo",
+#     "average_xo",
+#     "cycle_xo",
+#     "int_arithmetic_crossover",
+#     "fitness_dependent_xo",
+# ]
 
-mutation_options = [
-    "flip_food",
-    "swap_mutation",
-    "inversion_mutation",
-    "shuffle_mutation",
-    "shift_mutation",
-    "add_or_remove_mutation",
-    "gaussian_adaptation_mutation",
-    "fitness_dependent_mutation",
-]
+# mutation_options = [
+#     "flip_food",
+#     "swap_mutation",
+#     "inversion_mutation",
+#     "shuffle_mutation",
+#     "shift_mutation",
+#     "add_or_remove_mutation",
+#     "gaussian_adaptation_mutation",
+#     "fitness_dependent_mutation",
+# ]
 #########################################____Results Comparison____#########################################
 
 # Comparing selection methods
-# fitness_options = [
-#     "fitness_sum_excess_shortfall",
-# ]
-# selection_options = ["tournament_sel"]
-# xo_options = ["single_point_xo"]
-# mutate_options = ["swap_mutation"]
+fitness_options = [
+    "fitness_sum_excess_shortfall",
+]
+selection_options = ["tournament_sel"]
+xo_options = ["single_point_xo"]
+mutation_options = ["swap_mutation"]
 
-# run_setup(
-#     pop=pop,
-#     gens=100,
-#     selection_options=selection_options,
-#     xo_options=xo_options,
-#     xo_prob=0.8,
-#     mutation_options=mutate_options,
-#     mut_prob=0.15,
-#     file_name="selection_comparison",
-# )
 
 run_setup(
     pop_size=100,
