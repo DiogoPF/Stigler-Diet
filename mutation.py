@@ -1,6 +1,19 @@
-from random import randint, sample, shuffle, choice, random
-from data.data_prep import nutrients, target_nutrients, prices
+from random import randint, sample, shuffle, random
+from charles import Individual
+from data.data_prep import nutrients, target_nutrients
 import numpy as np
+
+
+def flip_food(individual):
+    mut_indexes = sample(range(0, len(individual)), 2)
+    mut_indexes.sort()
+    for gene in individual[mut_indexes[0] : mut_indexes[1]]:
+        if gene == 0:
+            gene = randint(1, 100)
+        else:
+            gene = 0
+
+    return individual
 
 
 def swap_mutation(individual):
@@ -21,7 +34,7 @@ def swap_mutation(individual):
 
 
 def inversion_mutation(individual):
-    """Inversion mutation for a GA individual. Reverts a portion of the representation.
+    """Inversion mutation for a GA individual. Reverts a random portion of the representation.
 
     Args:
         individual (Individual): A GA individual from charles.py
@@ -120,16 +133,7 @@ def gaussian_adaptation_mutation(individual):
     return mutated_individual
 
 
-def fitness(individual):
-    total_cost = np.dot(individual, prices)
-    total_nutrients = np.dot(individual, nutrients)
-    fitness = total_cost
-    nutrient_shortfall = np.maximum(target_nutrients - total_nutrients, 0)
-    fitness += np.sum(nutrient_shortfall) * 1000
-    return fitness
-
-
-def fitness_dependent_swap(individual, max_tries=5):
+def fitness_dependent_mutation(individual, mutation=swap_mutation, max_tries=5):
     """Shift mutation for a GA individual. Shifts a random portion of the representation
     by a random number of positions (between 1,5) to the left or to the right(50% chance).
 
@@ -139,11 +143,14 @@ def fitness_dependent_swap(individual, max_tries=5):
     Returns:
         Individual: Mutated Individual
     """
-    best_individual = [individual, fitness(individual)]
+    best_individual = [individual, Individual(individual).get_fitness()]
     # Mutate
     for i in range(1, max_tries + 1):
-        mutated_representation = individual
-        mutated_individual = [mutated_representation, fitness(mutated_representation)]
+        mutated_representation = mutation(individual)
+        mutated_individual = [
+            mutated_representation,
+            Individual(mutated_representation).get_fitness(),
+        ]
         if mutated_individual[1] < best_individual[1]:
             best_individual = mutated_individual
 
@@ -152,4 +159,4 @@ def fitness_dependent_swap(individual, max_tries=5):
 
 if __name__ == "__main__":
     test = [0 for i in range(0, 76)] + [1]
-    print(fitness_dependent_swap(test))
+    print(swap_mutation(test))

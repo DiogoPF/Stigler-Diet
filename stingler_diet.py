@@ -1,64 +1,115 @@
 from data.data_prep import nutrients, prices, target_nutrients
 from charles import *
-from mutation import *
-from selection import *
-from xo import *
+from aux_funcs import *
+from fitness import *
 import numpy as np
-import pandas as pd
-import itertools
-from tqdm import tqdm
 
 
-def get_fitness(self):
-    total_cost = np.dot(self.representation, prices)
-    self.total_nutrients = np.dot(self.representation, nutrients)
-    fitness = total_cost
-
-    # if np.sum(self.representation) == 1:
-    #     fitness += 1000
-
-    # count_greater_than_one = np.sum(np.array(self.representation) > 0)
-    # print(count_greater_than_one)
-
-    nutrient_shortfall = np.maximum(target_nutrients - self.total_nutrients, 0)
-    fitness += (
-        np.sum(nutrient_shortfall) * 1000
-    )  # multiply to ensure that sol doesn't contain nutrient deficits
-
-    # nutrient_shortfall = np.sum(np.abs(target_nutrients - self.total_nutrients))
-    # fitness += nutrient_shortfall * 1000
-
-    return fitness
+# Individual.get_fitness = fitness_each_shortfall
 
 
-Individual.get_fitness = get_fitness
+# pop = Population(
+#     size=100,
+#     optim="min",
+#     sol_size=len(nutrients),
+#     valid_set=range(0, 101),
+#     repetition=True,
+# )
 
 
-pop = Population(
-    size=100,
-    optim="min",
-    sol_size=len(nutrients),
-    valid_set=range(0, 101),
-    repetition=True,
-)
+# pop.evolve(
+#     gens=10,
+#     xo_prob=0.85,
+#     mut_prob=0.15,
+#     select=fps,
+#     xo=single_point_xo,
+#     mutate=swap_mutation,
+#     elitism=True,
+# )
+fitness_options = [
+    "fitness_sum_excess_shortfall",
+    "fitness_sum_shortfall",
+    "fitness_each_shortfall",
+    "fitness_each_excess_shortfall",
+    "fitness_each_excess_shortfall_weighted",
+]
+selection_options = ["fps", "rank_sel", "tournament_sel"]
 
+xo_options = [
+    "single_point_xo",
+    "k_point_xo",
+    "uniform_xo",
+    "adapted_pmx",
+    "ordered_xo",
+    "average_xo",
+    "cycle_xo",
+    "int_arithmetic_crossover",
+    "fitness_dependent_xo",
+]
 
-pop.evolve(
-    gens=1000,
-    xo_prob=0.85,
+mutation_options = [
+    "flip_food",
+    "swap_mutation",
+    "inversion_mutation",
+    "shuffle_mutation",
+    "shift_mutation",
+    "add_or_remove_mutation",
+    "gaussian_adaptation_mutation",
+    "fitness_dependent_mutation",
+]
+#########################################____Results Comparison____#########################################
+
+# Comparing selection methods
+# fitness_options = [
+#     "fitness_sum_excess_shortfall",
+# ]
+# selection_options = ["tournament_sel"]
+# xo_options = ["single_point_xo"]
+# mutate_options = ["swap_mutation"]
+
+# run_setup(
+#     pop=pop,
+#     gens=100,
+#     selection_options=selection_options,
+#     xo_options=xo_options,
+#     xo_prob=0.8,
+#     mutation_options=mutate_options,
+#     mut_prob=0.15,
+#     file_name="selection_comparison",
+# )
+
+run_setup(
+    pop_size=100,
+    gens=100,
+    fitness_options=fitness_options,
+    selection_options=selection_options,
+    xo_options=xo_options,
+    xo_prob=0.8,
+    mutation_options=mutation_options,
     mut_prob=0.15,
-    select=fps,
-    xo=cycle_xo,
-    mutate=shuffle_mutation,
-    elitism=True,
-    tour_size=3,
-    max_tries=10,
-    k_point=10,
-    uniform_prob=0.5,
+    file_name="all_results",
 )
 
+# Comparing Tournament Sizes
 
-#####   Results Comparison    #####
+selection_options = ["tournament_sel"]
+xo_options = ["single_point_xo"]
+mutate_options = ["swap_mutation"]
+tour_sizes = range(2, 11)
+
+# compare_tournament_size(
+#     pop=pop,
+#     gens=500,
+#     selection_options=selection_options,
+#     xo_options=xo_options,
+#     xo_prob=0.8,
+#     mutation_options=mutate_options,
+#     mut_prob=0.15,
+#     tour_sizes=tour_sizes,
+#     file_name="tournament_size_comparison",
+# )
+
+
 # select_list = ["fps", "tournament_sel", "rank_sel"]
 # xo_list = ["single_point_xo"]
 # mutate_list = ["swap_mutation"]

@@ -1,5 +1,5 @@
-from random import randint, sample, uniform, random, randrange, shuffle
-import copy
+from random import randint, sample, uniform, random, shuffle
+from charles import Individual
 
 
 def single_point_xo(parent1, parent2):
@@ -18,15 +18,15 @@ def single_point_xo(parent1, parent2):
     return offspring1, offspring2
 
 
-def k_point_xo(parent1, parent2, k=3):
-    """Implementation of n-point crossover.
+def k_point_xo(parent1, parent2, k=4):
+    """Implementation of k-point crossover. Selects k random xo points and swaps the genes between the parents
 
     Args:
         parent1 (list of int): First parent for crossover.
         parent2 (list of int): Second parent for crossover.
 
     Returns:
-        tuple: Two offspring, resulting from the crossover.
+        Individuals: Two offspring, resulting from the crossover.
     """
 
     xo_points = sample(range(1, len(parent1) - 1), k)
@@ -182,69 +182,20 @@ def int_arithmetic_crossover(p1, p2):
     return [offspring1, offspring2]
 
 
+def fitness_dependent_xo(parent1, parent2, xo=uniform_xo, iterations=10):
+    individuals = []
+    for _ in range(iterations):
+        offspring1, offspring2 = xo(parent1, parent2)
+        individuals.append([offspring1, Individual(offspring1).get_fitness()])
+        individuals.append([offspring2, Individual(offspring2).get_fitness()])
+
+    sorted_individuals = sorted(individuals, key=lambda x: x[1])
+    return sorted_individuals[0][0], sorted_individuals[1][0]
+
+
 if __name__ == "__main__":
     # p1, p2 = [9,8,2,1,7,4,5,10,6,3], [1,2,3,4,5,6,7,8,9,10]
     # p1, p2 = [2,7,4,3,1,5,6,9,8], [1,2,3,4,5,6,7,8,9]
     p1, p2 = [9, 8, 4, 5, 6, 7, 1, 3, 2, 10], [8, 7, 1, 2, 3, 10, 9, 5, 4, 6]
-    o1, o2 = pmx(p1, p2)
+    o1, o2 = k_point_xo(p1, p2)
     print(o1, o2)
-
-
-def reduce(p1, p2):
-    """Implementation of cycle crossover.
-
-    Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
-
-    Returns:
-        Individuals: Two offspring, resulting from the crossover.
-    """
-    # offspring placeholders
-    offspring1 = [None] * len(p1)
-    offspring2 = [None] * len(p1)
-
-    while None in offspring1:
-        index = offspring1.index(None)
-        val1 = p1[index]
-        val2 = p2[index]
-
-        # copy the cycle elements
-        while val1 != val2:
-            offspring1[index] = p1[index]
-            offspring2[index] = p2[index]
-            val2 = p2[index]
-            index = p1.index(val2)
-
-        # copy the rest
-        for element in offspring1:
-            if element is None:
-                index = offspring1.index(None)
-                if offspring1[index] is None:
-                    offspring1[index] = p2[index]
-                    offspring2[index] = p1[index]
-
-    return offspring1, offspring2
-
-
-def blend_crossover(parent1, parent2, alpha=0.3):
-    offspring1 = []
-    offspring2 = []
-
-    for i in range(len(parent1)):
-        min_val = min(parent1[i], parent2[i])
-        max_val = max(parent1[i], parent2[i])
-        range_val = max_val - min_val
-
-        # Calculate the range around parents' genes
-        min_range = min_val - alpha * range_val
-        max_range = max_val + alpha * range_val
-
-        # Generate offspring gene
-        gene1 = round(uniform(min_range, max_range))
-        gene2 = round(uniform(min_range, max_range))
-
-        offspring1.append(gene1)
-        offspring2.append(gene2)
-
-    return offspring1, offspring2

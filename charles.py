@@ -94,14 +94,19 @@ class Population:
     ):
         tour_size = kwargs.get("tour_size", False)
         max_tries = kwargs.get("max_tries", False)
+        fit_dependent_mut = kwargs.get("fit_dependent_mut", False)
         k_point = kwargs.get("k_point", False)
         uniform_prob = kwargs.get("uniform_prob", False)
 
         if tour_size and select.__name__ == "tournament_sel":
             select = partial(select, tour_size=tour_size)
 
-        if max_tries and mutate.__name__ == "fitness_dependent_swap":
-            mutate = partial(mutate, max_tries=max_tries)
+        if (
+            max_tries
+            and fit_dependent_mut
+            and mutate.__name__ == "fitness_dependent_mutation"
+        ):
+            mutate = partial(mutate, mutation=fit_dependent_mut, max_tries=max_tries)
 
         if k_point and xo.__name__ == "k_point_xo":
             xo = partial(xo, k=k_point)
@@ -109,7 +114,7 @@ class Population:
         if uniform_prob and xo.__name__ == "uniform_xo":
             xo = partial(xo, prob=uniform_prob)
 
-        fitness_gen = []
+        results = []
         # gens = 100
         for i in range(gens):
             new_pop = []
@@ -174,13 +179,23 @@ class Population:
                 print(f"Best individual of gen #{i + 1}: {best_individual}")
             elif self.optim == "min":
                 gen = i + 1
-                best_fitness = min(self, key=attrgetter("fitness"))
-                fitness_gen.append([gen, best_fitness.fitness])
                 best_individual = min(self, key=attrgetter("fitness"))
-                print(f"Best individual of gen #{i + 1}: {best_individual}")
-        print(best_individual.get_food_list())
-        print(best_individual.get_nutrients_diff().tolist())
-        return fitness_gen
+                results.append(
+                    [
+                        gen,
+                        best_individual.fitness,
+                    ]
+                )
+                # print(f"Best individual of gen #{i + 1}: {best_individual}")
+        # print(best_individual.get_food_list())
+        # print(best_individual.get_nutrients_diff().tolist())
+        results[-1].extend(
+            [
+                best_individual.get_nutrients_diff().tolist(),
+                len(best_individual.get_food_list()),
+            ]
+        )
+        return results
 
     def __len__(self):
         return len(self.individuals)
