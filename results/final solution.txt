@@ -1,0 +1,12 @@
+Diet total cost: 4.8$
+
+Food List:
+{'Sweet Potatoes-1 lb.': 19, 'Navy Beans, Dried-1 lb.': 44, 'Strawberry Preserves-1 lb.': 6}
+
+Diet Variety:3
+
+Nutrient Shortage: 0
+Nutrient Excess: 102271.5
+
+Nutrients Difference:
+[309.4000000000001, 51542.0, 263.29999999999995, 31536.0, 3699.5, 1193.3999999999999, 201.89999999999998, 4573.0, 8953.0]

@@ -102,6 +102,7 @@ class Population:
         k_point = kwargs.get("k_point", False)
         uniform_prob = kwargs.get("uniform_prob", False)
         fitness_dependent_xo_var = kwargs.get("fitness_dependent_xo_var", False)
+        final_run = kwargs.get("final_run", False)
 
         if tour_size and select.__name__ == "tournament_sel":
             select = partial(select, tour_size=tour_size)
@@ -198,9 +199,30 @@ class Population:
                         best_individual.fitness,
                     ]
                 )
-                # print(f"Best individual of gen #{i + 1}: {best_individual}")
-        # print(best_individual.get_food_list())
-        # print(best_individual.get_nutrients_diff().tolist())
+        # print(f"Best individual of gen #{i + 1}: {best_individual}")
+        # Creates a txt file with the solution details
+        if final_run:
+
+            food_list = best_individual.get_food_list()
+            nutrients_diff = best_individual.get_nutrients_diff().tolist()
+            nutrient_excess = sum([max(0, x) for x in nutrients_diff])
+            nutrient_shortage = sum([min(0, x) for x in nutrients_diff])
+
+            file_path = "./results/final solution.txt"
+
+            with open(file_path, "w") as file:
+                file.write("Diet total cost: ")
+                file.write(str(round(best_individual.fitness / 100, 2)) + "$\n")
+                file.write("\nFood List:\n")
+                file.write(str(food_list) + "\n")
+                file.write("\nDiet Variety:")
+                file.write(str(len(food_list)) + "\n")
+                file.write("\nNutrient Shortage: ")
+                file.write(str(nutrient_shortage))
+                file.write("\nNutrient Excess: ")
+                file.write(str(nutrient_excess) + "\n")
+                file.write("\nNutrients Difference:\n")
+                file.write(str(nutrients_diff))
 
         # Appends nutricional discrepancies and diet variability of the final solution (last gen)
         results[-1].extend(
