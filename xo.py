@@ -24,6 +24,7 @@ def k_point_xo(parent1, parent2, k=4):
     Args:
         parent1 (list of int): First parent for crossover.
         parent2 (list of int): Second parent for crossover.
+        k (int, optional): Number of crossover points. Defaults to 4.
 
     Returns:
         Individuals: Two offspring, resulting from the crossover.
@@ -49,10 +50,12 @@ def k_point_xo(parent1, parent2, k=4):
 
 def uniform_xo(parent1, parent2, prob=0.5):
     """Implementation of uniform crossover.
+    Swaps genes between the two parents with a given probability to create offspring.
 
     Args:
         parent1 (Individual): First parent for crossover.
         parent2 (Individual): Second parent for crossover.
+        prob (float, optional): Crossover probability. Defaults to 0.5.
 
     Returns:
         Individuals: Two offspring, resulting from the crossover.
@@ -67,7 +70,8 @@ def uniform_xo(parent1, parent2, prob=0.5):
 
 
 def adapted_pmx(parent1, parent2):
-    """Implementation of partially matched/mapped crossover.
+    """Implementation of adapted partially matched/mapped crossover.
+    Exchanges segments between parents based on two random crossover points but does not ensure the uniqueness of genes in the offspring
 
     Args:
         p1 (Individual): First parent for crossover.
@@ -79,6 +83,8 @@ def adapted_pmx(parent1, parent2):
     xo_points = sample(range(len(parent1)), 2)
     xo_points.sort()
 
+    # Maintains parent genes, only window is swapped
+    # Tried reversing the two segments before and after window but reveled to chromosome destructive
     offspring1 = (
         parent1[: xo_points[0]]  # [::-1]
         + parent2[xo_points[0] : xo_points[1]]
@@ -95,6 +101,15 @@ def adapted_pmx(parent1, parent2):
 
 
 def ordered_xo(parent1, parent2):
+    """Similar to the classical approach  of ordered crossover, but utilizes index-based operations to perform crossover.
+
+    Args:
+        p1 (Individual): First parent for crossover.
+        p2 (Individual): Second parent for crossover.
+
+    Returns:
+        Individuals: Two offspring, resulting from the crossover.
+    """
     index = [i for i in range(0, len(parent1))]
     xo_points = sample(range(len(parent1)), 2)
     xo_points.sort()
@@ -121,11 +136,30 @@ def ordered_xo(parent1, parent2):
 
 
 def average_xo(parent1, parent2):
+    """Calculates the average of each parents genes and rounds it to the nearest integer.
+
+    Args:
+        p1 (Individual): First parent for crossover.
+        p2 (Individual): Second parent for crossover.
+
+    Returns:
+        Individual: One offspring, resulting from the crossover.
+    """
     offspring = [int(parent1[i] + parent2[i] / 2) for i in range(len(parent1))]
     return offspring
 
 
 def cycle_xo(p1, p2):
+    """Similar to the classical approach (implemented in class) of cycle crossover, but utilizes index-based operations to perform crossover.
+    The indexes are attributed randomly to each parent.
+
+    Args:
+        p1 (Individual): First parent for crossover.
+        p2 (Individual): Second parent for crossover.
+
+    Returns:
+        Individuals: Two offspring, resulting from the crossover.
+    """
     p1_indexes = list(range(len(p1)))
     p2_indexes = list(range(len(p1)))
     shuffle(p1_indexes)
@@ -158,20 +192,19 @@ def cycle_xo(p1, p2):
 
 
 def int_arithmetic_crossover(p1, p2):
-    """Implementation of integer arithmetic crossover.
+    """Similar to classical arithmetic crossover but uses a rounded-to-the-nearest-integer approach.
 
     Args:
         p1 (list of int): First parent for crossover.
         p2 (list of int): Second parent for crossover.
 
     Returns:
-        list of list of int: Two offspring resulting from the crossover.
+        Individuals: Two offspring, resulting from the crossover.
     """
     offspring1 = []
     offspring2 = []
 
     for i in range(len(p1)):
-        # Choose crossover points
         r1 = random()
         r2 = random()
         offspring_value1 = round(p1[i] * r1 + p2[i] * (1 - r1))
@@ -182,10 +215,21 @@ def int_arithmetic_crossover(p1, p2):
     return [offspring1, offspring2]
 
 
-def fitness_dependent_xo(parent1, parent2, xo=uniform_xo, iterations=10):
+def fitness_dependent_xo(parent1, parent2, xo_op=uniform_xo, iterations=10):
+    """Applies a chosen crossover operator xo_op  n times and selects the two best offspring based on fitness
+
+    Args:
+        p1 (Individual): First parent for crossover.
+        p2 (Individual): Second parent for crossover.
+        xo_op (function, optional): Crossover operation. Defaults to uniform_xo.
+        iterations (int, optional): Number of iterations. Defaults to 10.
+
+    Returns:
+        Individuals: Two offspring (highest fitness of the 10 generated), resulting from the crossover.
+    """
     individuals = []
     for _ in range(iterations):
-        offspring1, offspring2 = xo(parent1, parent2)
+        offspring1, offspring2 = xo_op(parent1, parent2)
         individuals.append([offspring1, Individual(offspring1).get_fitness()])
         individuals.append([offspring2, Individual(offspring2).get_fitness()])
 

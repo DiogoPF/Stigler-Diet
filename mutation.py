@@ -5,19 +5,27 @@ import numpy as np
 
 
 def flip_food(individual):
+    """Selects a random segment of the chromosome and flips each gene: 0 to a random integer between 1 and 100, and non-zero values to 0.
+
+    Args:
+        individual (Individual): A GA individual from charles.py
+
+    Returns:
+        Individual: Mutated Individual
+    """
     mut_indexes = sample(range(0, len(individual)), 2)
     mut_indexes.sort()
-    for gene in individual[mut_indexes[0] : mut_indexes[1]]:
-        if gene == 0:
-            gene = randint(1, 100)
+    for gene in range(mut_indexes[0], mut_indexes[1]):
+        if individual[gene] == 0:
+            individual[gene] = randint(1, 100)
         else:
-            gene = 0
+            individual[gene] = 0
 
     return individual
 
 
 def swap_mutation(individual):
-    """Swap mutation for a GA individual. Swaps the bits.
+    """Selects a random segment of the chromosome and inverts segment order.
 
     Args:
         individual (Individual): A GA individual from charles.py
@@ -34,7 +42,7 @@ def swap_mutation(individual):
 
 
 def inversion_mutation(individual):
-    """Inversion mutation for a GA individual. Reverts a random portion of the representation.
+    """Selects a random segment of the chromosome and inverts genes order.
 
     Args:
         individual (Individual): A GA individual from charles.py
@@ -46,12 +54,14 @@ def inversion_mutation(individual):
     mut_indexes.sort()
     individual[mut_indexes[0] : mut_indexes[1]] = individual[
         mut_indexes[0] : mut_indexes[1]
-    ][::-1]
+    ][
+        ::-1
+    ]  # Inversion of string - makes it different from swap mut
     return individual
 
 
 def shuffle_mutation(individual):
-    """Shuffle mutation for a GA individual. Shuffles a random portion of the representation.
+    """Selects a random segment of the chromosome and randomly shuffles the genes within that segment.
 
     Args:
         individual (Individual): A GA individual from charles.py
@@ -90,8 +100,8 @@ def shift_mutation(individual):
 
 
 def add_or_remove_mutation(individual):
-    """Shift mutation for a GA individual. Shifts a random portion of the representation
-    by a random number of positions (between 1,5) to the left or to the right(50% chance).
+    """Selects between 1 to 20 genes and adjusts them by adding values (1 to 3) if nutrient content is
+    below the target or sets genes to 0 if above the target.
 
     Args:
         individual (Individual): A GA individual from charles.py
@@ -99,12 +109,13 @@ def add_or_remove_mutation(individual):
     Returns:
         Individual: Mutated Individual
     """
-
     current_nutrients = np.dot(individual, nutrients)
     nutrient_diff = sum(current_nutrients - np.array(target_nutrients))
-    mut_indexes = sample(range(0, len(individual)), randint(1, 10))
+    mut_indexes = sample(range(0, len(individual)), randint(1, 20))
 
-    counter = len(mut_indexes)
+    counter = len(
+        mut_indexes
+    )  # makes it to iterate as many times as there are indexes to improve swap probability
     if nutrient_diff < 0:
         for i in mut_indexes:
             if counter > 0 and individual[i] == 0:
@@ -120,25 +131,35 @@ def add_or_remove_mutation(individual):
 
 
 def gaussian_adaptation_mutation(individual):
+    """Randomly adds a value from a normal distribution (mean 0, standard deviation 10)
+    to each gene with a 50% chance, ensuring values are within the range of 0 to 100.
+
+    Args:
+        individual (Individual): A GA individual from charles.py
+
+    Returns:
+        Individual: Mutated Individual
+    """
     mutated_individual = []
     for gene in individual:
-        if random() < 0.15:  # 50% chance to mutate or keep the original gene
+        if random() < 0.5:
             mutated_value = int(np.round(gene + np.random.normal(0, 10)))
             mutated_value = max(
                 0, min(100, mutated_value)
             )  # Ensure mutated value is within [0, 100]
             mutated_individual.append(mutated_value)
         else:
-            mutated_individual.append(gene)  # Keep the original gene as integer
+            mutated_individual.append(gene)
     return mutated_individual
 
 
 def fitness_dependent_mutation(individual, mutation=swap_mutation, max_tries=5):
-    """Shift mutation for a GA individual. Shifts a random portion of the representation
-    by a random number of positions (between 1,5) to the left or to the right(50% chance).
+    """Applies a chosen mutation operator n times and selects the best individual based on fitness.
 
     Args:
         individual (Individual): A GA individual from charles.py
+        mutation (function, optional): Mutation operator. Defaults to swap_mutation.
+        max_tries (int, optional): Maximum number of tries. Defaults to 5.
 
     Returns:
         Individual: Mutated Individual
@@ -151,7 +172,7 @@ def fitness_dependent_mutation(individual, mutation=swap_mutation, max_tries=5):
             mutated_representation,
             Individual(mutated_representation).get_fitness(),
         ]
-        if mutated_individual[1] < best_individual[1]:
+        if mutated_individual[1] < best_individual[1]:  # Individuals fitness comparison
             best_individual = mutated_individual
 
     return best_individual[0]

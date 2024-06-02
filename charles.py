@@ -46,6 +46,7 @@ class Individual:
     def __repr__(self):
         return f" Fitness: {self.fitness}"
 
+    # Enables get solution of individual representation
     def get_food_list(self):
         food_dict = {
             commodities[i]: self.representation[i]
@@ -54,6 +55,7 @@ class Individual:
         }
         return food_dict
 
+    # Enables get nutricional discrepancies between solution and target
     def get_nutrients_diff(self):
         current_nutrients = np.dot(self.representation, nutrients)
         diff = current_nutrients - np.array(target_nutrients)
@@ -92,21 +94,17 @@ class Population:
         elitism,
         **kwargs,
     ):
+
+        # Enables passing additional arguments for the mutation and xo functions
         tour_size = kwargs.get("tour_size", False)
         max_tries = kwargs.get("max_tries", False)
         fit_dependent_mut = kwargs.get("fit_dependent_mut", False)
         k_point = kwargs.get("k_point", False)
         uniform_prob = kwargs.get("uniform_prob", False)
+        fitness_dependent_xo_var = kwargs.get("fitness_dependent_xo_var", False)
 
         if tour_size and select.__name__ == "tournament_sel":
             select = partial(select, tour_size=tour_size)
-
-        if (
-            max_tries
-            and fit_dependent_mut
-            and mutate.__name__ == "fitness_dependent_mutation"
-        ):
-            mutate = partial(mutate, mutation=fit_dependent_mut, max_tries=max_tries)
 
         if k_point and xo.__name__ == "k_point_xo":
             xo = partial(xo, k=k_point)
@@ -114,6 +112,17 @@ class Population:
         if uniform_prob and xo.__name__ == "uniform_xo":
             xo = partial(xo, prob=uniform_prob)
 
+        if fitness_dependent_xo_var and xo.__name__ == "fitness_dependent_xo":
+            xo = partial(xo, xo_op=fitness_dependent_xo_var)
+
+        # if (
+        #     max_tries
+        #     and fit_dependent_mut
+        #     and mutate.__name__ == "fitness_dependent_mutation"
+        # ):
+        #     mutate = partial(mutate, mutation=fit_dependent_mut, max_tries=max_tries)
+
+        # Results list will store the generation number and fitness of best solution(appended in the end of every gen)
         results = []
         # gens = 100
         for i in range(gens):
@@ -145,7 +154,10 @@ class Population:
                         select(self),
                     )
                     if random() < xo_prob:
-                        offspring1 = xo(parent1, parent2)
+                        offspring1 = xo(
+                            parent1,
+                            parent2,
+                        )
                         offspring2 = xo(parent3, parent4)
                     else:
                         offspring1, offspring2 = parent1, parent2
@@ -189,6 +201,8 @@ class Population:
                 # print(f"Best individual of gen #{i + 1}: {best_individual}")
         # print(best_individual.get_food_list())
         # print(best_individual.get_nutrients_diff().tolist())
+
+        # Appends nutricional discrepancies and diet variability of the final solution (last gen)
         results[-1].extend(
             [
                 best_individual.get_nutrients_diff().tolist(),
