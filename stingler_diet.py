@@ -3,7 +3,6 @@ from charles import *
 from aux_funcs import *
 from fitness import *
 import numpy as np
-from telegram_not import message
 import glob
 
 
